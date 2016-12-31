@@ -7,13 +7,13 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class FlowPathsTest {
+public class FlowPathGeneratorTest {
 
     enum Test implements SedaType {
         UNU
     }
 
-    private final FlowPathGenerator generator = new FlowPathGenerator();
+    private final FlowPathGenerator generator = new FlowPathGenerator("->", "start");
 
     @org.junit.Test
     public void main() {
@@ -27,8 +27,8 @@ public class FlowPathsTest {
                 .consumer(c3)
                 .build();
         List<String> list = generator.generatePaths(main);
-        assertTrue(list.contains("test->c1->c3"));
-        assertTrue(list.contains("test->c1->(key)c2->c3"));
+        assertTrue(list.contains("start->c1->c3"));
+        assertTrue(list.contains("start->c1->c2->c3"));
     }
 
     @org.junit.Test
@@ -55,7 +55,10 @@ public class FlowPathsTest {
                 .conditionalLink("key", c21)
                 .build();
         List<String> list = generator.generatePaths(main);
-        list.stream().forEach(System.out::println);
+        assertTrue(list.contains("start->c1->c3"));
+        assertTrue(list.contains("start->c1->c2->c0->c3"));
+        assertTrue(list.contains("start->c1->c3->c21->c01"));
+        assertTrue(list.contains("start->c1->c2->c0->c3->c21->c01"));
     }
 
     @org.junit.Test
@@ -71,7 +74,7 @@ public class FlowPathsTest {
         assertNotNull(paths);
         Iterator<String> iterator = paths.iterator();
         assertTrue(iterator.hasNext());
-        assertEquals("test->c1->c2", iterator.next());
+        assertEquals("start->c1->c2", iterator.next());
         assertFalse(iterator.hasNext());
     }
 
@@ -87,8 +90,8 @@ public class FlowPathsTest {
         List<String> paths = generator.generatePaths(flow);
         assertNotNull(paths);
         assertEquals(2, paths.size());
-        assertTrue(paths.contains("test->c1"));
-        assertTrue(paths.contains("test->c1->(key)c2"));
+        assertTrue(paths.contains("start->c1"));
+        assertTrue(paths.contains("start->c1->c2"));
     }
 
     @org.junit.Test
@@ -110,10 +113,8 @@ public class FlowPathsTest {
         assertNotNull(paths);
         Iterator<String> iterator = paths.iterator();
         assertTrue(iterator.hasNext());
-        assertEquals("test->c1", iterator.next());
-        assertTrue(iterator.hasNext());
-        assertEquals("test->c1->c3->c2", iterator.next());
-        assertTrue(iterator.hasNext());
-        assertEquals("test->c1->c3", iterator.next());
+        assertTrue(paths.contains("start->c1"));
+        assertTrue(paths.contains("start->c1->c3->c2"));
+        assertTrue(paths.contains("start->c1->c3"));
     }
 }

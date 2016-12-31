@@ -1,65 +1,63 @@
 package seda;
 
-import java.util.*;
+import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 public class FlowPathGenerator  implements PathGenerator<String, Flow> {
 
-    private Flow flow;
+    private final String separator;
+    private final String initial;
+
+    public FlowPathGenerator(String separator, String initial) {
+        this.separator = separator;
+        this.initial = initial;
+    }
 
     @Override
     public List<String> generatePaths(Flow start) {
-        this.flow = start;
-        List<String> res = new ArrayList<>();
-        parseList(0, flow.name, res, flow.consumers, flow);
+        List<String> res = Lists.newArrayList(initial);
+        parseElements(start, start.consumers, res);
         return res;
     }
 
-    private String getCondition(Flow main, Flow subflow) {
-        if (hasCondition(main, subflow)) {
-            return main.getCondition(subflow);
+    public List<String> parseElements(Flow mainFlow, List<Flow> elements, List<String> acc) {
+        for (Flow subflow : elements) {
+            if (hasCondition(mainFlow, subflow)) {
+                List<String> stringsToEnrich = Lists.newArrayList(acc);
+                updateAcc(subflow, stringsToEnrich);
+                acc.addAll(stringsToEnrich);
+            } else updateAcc(subflow, acc);
         }
-        return null;
+        return acc;
     }
 
-    private void parseList(int index, String head, List<String> acc, List<Flow> alist, Flow parentFlow) {
-        String path = head;
-        for (int i = index; i < alist.size(); i++) {
-            Flow c = alist.get(i);
-            String condition = null;
-            if (hasCondition(parentFlow, c)) {
-                parseList(i + 1, path, acc, alist, c);
-                condition = getCondition(parentFlow, c);
-            }
-            if(hasConsumers(c)) {
-                parseList(0, path, acc, c.consumers, c);
-            } else path += row(condition, c.name);
+    private void updateAcc(Flow flow, List<String> acc) {
+        List<String> childElements = Lists.newArrayList(flow.name);
+        if (hasChilds(flow)) {
+            List<Flow> childs = getChilds(flow);
+            parseElements(flow, childs, childElements);
         }
-        acc.add(path);
+        crossJoin(childElements, acc);
     }
 
-    private String row(String head, String condition, String val) {
-        if (condition != null) {
-            return head + conditional(condition, val);
+    private void crossJoin(List<String> childs, List<String> acc) {
+        ListIterator<String> it = acc.listIterator();
+        while(it.hasNext()) {
+            String childFlow = it.next();
+            it.remove();
+            childs.stream().forEach(child -> it.add(childFlow + separator + child));
         }
-        return head + simple(val);
     }
 
-    private String row(String condition, String e) {
-        return condition != null
-                ? conditional(condition, e)
-                : simple(e);
-    }
-
-    private String conditional(String condition, String name) {
-        return String.format("->(%s)%s", condition, name);
-    }
-
-    private String simple(String name) {
-        return String.format("->%s", name);
-    }
-
-    private boolean hasConsumers(Flow subflow) {
+    private boolean hasChilds(Flow subflow) {
         return !subflow.consumers.isEmpty();
+    }
+
+    private List<Flow> getChilds(Flow flow) {
+        return flow.consumers;
     }
 
     private boolean hasCondition(Flow parentFlow, Flow subflow) {
