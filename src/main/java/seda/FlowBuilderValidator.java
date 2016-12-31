@@ -1,11 +1,10 @@
 package seda;
 
 import com.google.common.collect.Sets;
-import seda.message.SedaType;
 
 import java.util.*;
 
-public class FlowBuilderValidator {
+class FlowBuilderValidator {
 
     private final Set<SedaType> inFields;
     private final Set<SedaType> outFields;
@@ -13,7 +12,7 @@ public class FlowBuilderValidator {
     private final Set<SedaType> unusedInputFields;
     private final List<Flow> consumers;
 
-    public FlowBuilderValidator(Set<SedaType> inFields, Set<SedaType> outFields, Set<SedaType> internalFields, Set<SedaType> unusedInputFields, List<Flow> consumers) {
+    FlowBuilderValidator(Set<SedaType> inFields, Set<SedaType> outFields, Set<SedaType> internalFields, Set<SedaType> unusedInputFields, List<Flow> consumers) {
         this.inFields = inFields;
         this.outFields = outFields;
         this.internalFields = internalFields;
@@ -23,7 +22,7 @@ public class FlowBuilderValidator {
 
     private Set<SedaType> getMissingFlowsFields(Flow flow) {
         final Set<SedaType> missingFields = Sets.newHashSetWithExpectedSize(flow.inputFields.size());
-        flow.inputFields.stream().forEach(field -> {
+        flow.inputFields.forEach(field -> {
             if (!internalFields.contains(field)) {
                 missingFields.add(field);
             }
@@ -33,9 +32,9 @@ public class FlowBuilderValidator {
 
     void checkForUnboundFieldsForCondition(Collection<Flow> flowsUnderThisKey, Flow flow) {
         final Set<SedaType> availableFields = new HashSet<>(internalFields);
-        flowsUnderThisKey.stream().forEach(fl -> availableFields.addAll(fl.outputFields));
+        flowsUnderThisKey.forEach(fl -> availableFields.addAll(fl.outputFields));
         final Set<SedaType> missingFields = new HashSet<>();
-        flow.inputFields.stream().forEach(field -> {
+        flow.inputFields.forEach(field -> {
             if (!availableFields.contains(field)) {
                 missingFields.add(field);
             }

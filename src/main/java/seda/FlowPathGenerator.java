@@ -5,9 +5,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.ListIterator;
 
-import static java.io.File.separator;
-
-class FlowPathGenerator  implements PathGenerator<String, Flow> {
+class FlowPathGenerator implements PathGenerator<String, Flow> {
 
     private final FlowFormatter formatter;
 
@@ -22,7 +20,7 @@ class FlowPathGenerator  implements PathGenerator<String, Flow> {
         return res;
     }
 
-    private List<String> parseElements(Flow mainFlow, List<Flow> elements, List<String> acc) {
+    private void parseElements(Flow mainFlow, List<Flow> elements, List<String> acc) {
         for (Flow subflow : elements) {
             if (hasCondition(mainFlow, subflow)) {
                 List<String> stringsToEnrich = Lists.newArrayList(acc);
@@ -31,34 +29,33 @@ class FlowPathGenerator  implements PathGenerator<String, Flow> {
                 acc.addAll(stringsToEnrich);
             } else updateAcc(null, subflow, acc);
         }
-        return acc;
     }
 
     private void updateAcc(String condition, Flow flow, List<String> acc) {
         List<String> childElements = Lists.newArrayList(flow.name);
-        if (hasChilds(flow)) {
-            List<Flow> childs = getChilds(flow);
-            parseElements(flow, childs, childElements);
+        if (hasChildren(flow)) {
+            List<Flow> children = getChildren(flow);
+            parseElements(flow, children, childElements);
         }
         crossJoin(condition, childElements, acc);
     }
 
-    private void crossJoin(String condition, List<String> childs, List<String> acc) {
+    private void crossJoin(String condition, List<String> children, List<String> acc) {
         ListIterator<String> it = acc.listIterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             String childFlow = it.next();
             it.remove();
-            childs.stream()
+            children.stream()
                     .map(child -> formatter.getRow(condition, childFlow, child))
                     .forEach(it::add);
         }
     }
 
-    private boolean hasChilds(Flow subflow) {
+    private boolean hasChildren(Flow subflow) {
         return !subflow.consumers.isEmpty();
     }
 
-    private List<Flow> getChilds(Flow flow) {
+    private List<Flow> getChildren(Flow flow) {
         return flow.consumers;
     }
 

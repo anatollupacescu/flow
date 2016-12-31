@@ -1,10 +1,10 @@
 package seda.example;
 
-import seda.message.SedaType;
+import seda.SedaType;
 
 public enum User implements SedaType {
     NAME,
-    LASTNAME,
+    LAST_NAME,
     AGE,
     INCOME
 }

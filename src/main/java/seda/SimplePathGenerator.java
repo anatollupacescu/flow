@@ -30,7 +30,7 @@ public class SimplePathGenerator implements PathGenerator<String, String> {
         return parseElements(new ArrayList<>(graph.get(start)), Lists.newArrayList(initial));
     }
 
-    public List<String> parseElements(List<String> elements, List<String> acc) {
+    private List<String> parseElements(List<String> elements, List<String> acc) {
         for (String e : elements) {
             if (hasCondition(e)) {
                 List<String> stringsToEnrich = Lists.newArrayList(acc);
@@ -43,27 +43,27 @@ public class SimplePathGenerator implements PathGenerator<String, String> {
 
     private void updateAcc(String e, List<String> acc) {
         List<String> childElements = Lists.newArrayList(e);
-        if (hasChilds(e)) {
-            List<String> childs = getChilds(e);
-            parseElements(childs, childElements);
+        if (hasChildren(e)) {
+            List<String> children = getChildren(e);
+            parseElements(children, childElements);
         }
         crossJoin(childElements, acc);
     }
 
-    private void crossJoin(List<String> childs, List<String> acc) {
+    private void crossJoin(List<String> children, List<String> acc) {
         ListIterator<String> it = acc.listIterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             String val = it.next();
             it.remove();
-            childs.stream().forEach(child -> it.add(val + separator + child));
+            children.forEach(child -> it.add(val + separator + child));
         }
     }
 
-    private List<String> getChilds(String e) {
+    private List<String> getChildren(String e) {
         return new ArrayList<>(graph.get(e));
     }
 
-    private boolean hasChilds(String c) {
+    private boolean hasChildren(String c) {
         return parents.contains(c);
     }
 

@@ -5,7 +5,10 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -23,7 +26,7 @@ public class SimplePathGeneratorTest {
         graph.putAll("h", glist);
         Set<String> conditions = Sets.newHashSet("b", "d");
         Set<String> parents = Sets.newHashSet("b", "h");
-        SimplePathGenerator gen = new SimplePathGenerator("","", graph, conditions, parents);
+        SimplePathGenerator gen = new SimplePathGenerator("", "", graph, conditions, parents);
         List<String> parsedList = gen.generatePaths("a");
         assertEquals(4, parsedList.size());
         assertTrue(parsedList.contains("ace"));
@@ -39,13 +42,13 @@ public class SimplePathGeneratorTest {
         Multimap<String, String> graph = ArrayListMultimap.create();
         List<String> alist = Arrays.asList("a", "d");
         List<String> dlist = Arrays.asList("e", "f");
-        List<String> glist = Arrays.asList("g");
+        List<String> glist = Collections.singletonList("g");
         graph.putAll("a", alist);
         graph.putAll("d", dlist);
         graph.putAll("f", glist);
-        SimplePathGenerator gen = new SimplePathGenerator("","", graph, conditions, parents);
+        SimplePathGenerator gen = new SimplePathGenerator("", "", graph, conditions, parents);
         List<String> parsedList = gen.generatePaths("a");
-        parsedList.stream().forEach(System.out::println);
+        parsedList.forEach(System.out::println);
         assertTrue(parsedList.contains("a"));
         assertTrue(parsedList.contains("ade"));
         assertTrue(parsedList.contains("adefg"));
@@ -57,10 +60,10 @@ public class SimplePathGeneratorTest {
         Set<String> parents = Sets.newHashSet("f");
         Multimap<String, String> graph = ArrayListMultimap.create();
         List<String> dlist = Arrays.asList("e", "f");
-        List<String> glist = Arrays.asList("g");
+        List<String> glist = Collections.singletonList("g");
         graph.putAll("d", dlist);
         graph.putAll("f", glist);
-        SimplePathGenerator gen = new SimplePathGenerator("","", graph, conditions, parents);
+        SimplePathGenerator gen = new SimplePathGenerator("", "", graph, conditions, parents);
         List<String> parsedList = gen.generatePaths("d");
         assertTrue(parsedList.contains("e"));
         assertTrue(parsedList.contains("efg"));
@@ -75,7 +78,7 @@ public class SimplePathGeneratorTest {
         graph.putAll("b", blist);
         Set<String> conditions = Sets.newHashSet("b", "d");
         Set<String> parents = Sets.newHashSet("b");
-        SimplePathGenerator gen = new SimplePathGenerator("","", graph, conditions, parents);
+        SimplePathGenerator gen = new SimplePathGenerator("", "", graph, conditions, parents);
         List<String> parsedList = gen.generatePaths("a");
         assertEquals(4, parsedList.size());
         assertTrue(parsedList.contains("ace"));
@@ -91,7 +94,7 @@ public class SimplePathGeneratorTest {
         graph.putAll("a", alist);
         Set<String> conditions = Sets.newHashSet("b");
         Set<String> parents = Sets.newHashSet();
-        SimplePathGenerator gen = new SimplePathGenerator("->","start", graph, conditions, parents);
+        SimplePathGenerator gen = new SimplePathGenerator("->", "start", graph, conditions, parents);
         List<String> parsedList = gen.generatePaths("a");
         assertEquals(2, parsedList.size());
         assertTrue(parsedList.contains("start->a->b->c"));
@@ -105,9 +108,9 @@ public class SimplePathGeneratorTest {
         graph.putAll("a", list);
         Set<String> conditions = Sets.newHashSet("b", "d", "e");
         Set<String> parents = Sets.newHashSet();
-        SimplePathGenerator gen = new SimplePathGenerator("","", graph, conditions, parents);
+        SimplePathGenerator gen = new SimplePathGenerator("", "", graph, conditions, parents);
         List<String> parsedList = gen.generatePaths("a");
-        parsedList.stream().forEach(System.out::println);
+        parsedList.forEach(System.out::println);
         assertEquals(8, parsedList.size());
         assertTrue(parsedList.contains("abcde"));
         assertTrue(parsedList.contains("abcd"));

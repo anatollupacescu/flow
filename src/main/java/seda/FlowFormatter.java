@@ -15,7 +15,7 @@ class FlowFormatter {
     }
 
     private String orEmpty(String input) {
-       return Optional.ofNullable(input).orElse("");
+        return Optional.ofNullable(input).orElse("");
     }
 
     String getInitial() {
@@ -23,7 +23,7 @@ class FlowFormatter {
     }
 
     String getRow(String condition, String from, String to) {
-        if(!Strings.isNullOrEmpty(condition)) {
+        if (!Strings.isNullOrEmpty(condition)) {
             return String.format("%s%s(%s)%s", from, separator, condition, to);
         }
         return String.format("%s%s%s", from, separator, to);

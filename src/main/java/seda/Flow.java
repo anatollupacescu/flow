@@ -1,7 +1,5 @@
 package seda;
 
-import seda.message.SedaType;
-
 import java.util.*;
 
 public class Flow {

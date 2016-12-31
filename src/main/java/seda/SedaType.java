@@ -1,4 +1,4 @@
-package seda.message;
+package seda;
 
 /**
  * Marker interface

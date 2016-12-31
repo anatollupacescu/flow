@@ -1,6 +1,6 @@
 package seda.example;
 
-import seda.message.SedaType;
+import seda.SedaType;
 
 public enum Account implements SedaType {
     ID,

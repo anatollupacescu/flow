@@ -9,7 +9,7 @@ public class SedaTest {
     @Test(expected = FlowBuilderValidator.UnusedFieldException.class)
     public void unusedFieldsThrowsException() {
         Flow downStreamMessageFlow = Flow.newWithName("consumer")
-                .inFields(User.NAME).buildConsumer();
+                .inFields(User.NAME).build();
 
         Flow.newWithName("main")
                 .inFields(User.NAME)
@@ -21,7 +21,7 @@ public class SedaTest {
     public void testMessageFlow() {
         Flow downStreamMessageFlow = Flow.newWithName("consumer")
                 .inFields(User.NAME)
-                .inFields(User.INCOME).buildConsumer();
+                .inFields(User.INCOME).build();
 
         Flow.newWithName("main")
                 .inFields(User.NAME)
@@ -33,15 +33,15 @@ public class SedaTest {
     public void testMessageFlowOK() {
         Flow incomeFetcher = Flow.newWithName("incomeFetcher")
                 .inFields(User.NAME)
-                .outField(User.INCOME).buildConsumer();
+                .outField(User.INCOME).build();
 
         Flow incomeFlow = Flow.newWithName("incomeFlow")
-                .inFields(User.LASTNAME)
-                .inFields(User.INCOME).buildConsumer();
+                .inFields(User.LAST_NAME)
+                .inFields(User.INCOME).build();
 
         Flow.newWithName("main")
                 .inFields(User.NAME)
-                .inFields(User.LASTNAME)
+                .inFields(User.LAST_NAME)
                 .consumer(incomeFetcher)
                 .consumer(incomeFlow)
                 .build();
@@ -51,15 +51,15 @@ public class SedaTest {
     public void test3MessageFlowsWorkOK() {
         Flow downStreamMessageFlow = Flow.newWithName("down1")
                 .inFields(User.NAME)
-                .outField(Account.ID).buildConsumer();
+                .outField(Account.ID).build();
         Flow downStreamMessageFlow2 = Flow.newWithName("down2")
-                .inFields(User.LASTNAME).buildConsumer();
+                .inFields(User.LAST_NAME).build();
         Flow downStreamMessageFlow3 = Flow.newWithName("down3")
-                .inFields(Account.ID).buildConsumer();
+                .inFields(Account.ID).build();
 
         Flow.newWithName("main")
                 .inFields(User.NAME)
-                .inFields(User.LASTNAME)
+                .inFields(User.LAST_NAME)
                 .consumer(downStreamMessageFlow)
                 .consumer(downStreamMessageFlow2)
                 .consumer(downStreamMessageFlow3).build();

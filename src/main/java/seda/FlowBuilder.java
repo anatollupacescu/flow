@@ -1,7 +1,6 @@
 package seda;
 
 import com.google.common.collect.*;
-import seda.message.SedaType;
 
 import java.util.*;
 
@@ -14,7 +13,7 @@ public class FlowBuilder {
     private final Set<SedaType> unusedInputFields = Sets.newHashSet();
     private final List<Flow> consumers = Lists.newArrayList();
     private final Multimap<String, Flow> localConditionsMap = HashMultimap.create();
-    private final Map<Flow,String> conditionsMap = Maps.newHashMap();
+    private final Map<Flow, String> conditionsMap = Maps.newHashMap();
     private final FlowBuilderValidator validator;
 
     FlowBuilder(String name) {
@@ -58,13 +57,10 @@ public class FlowBuilder {
 
     public Flow build() {
         validator.checkIfFlowHasValidFields();
-        validator.checkIfFlowHasUnusedFields();
-        return new Flow(name, inFields, outFields, consumers, conditionsMap);
-    }
-
-    public Flow buildConsumer() {
-        validator.checkIfFlowHasValidFields();
+        if (!consumers.isEmpty()) {
+            validator.checkIfFlowHasUnusedFields();
+            return new Flow(name, inFields, outFields, consumers, conditionsMap);
+        }
         return new Flow(name, inFields, outFields, Collections.emptyList(), conditionsMap);
     }
-
 }
