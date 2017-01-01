@@ -11,7 +11,7 @@ public class FlowPathGeneratorTest {
         UNU
     }
 
-    private final FlowFormatter formatter = new FlowFormatter("->", "start");
+    private final FlowFormatter formatter = new FlowFormatter("->");
     private final FlowPathGenerator generator = new FlowPathGenerator(formatter);
 
     @org.junit.Test
@@ -22,7 +22,7 @@ public class FlowPathGeneratorTest {
         Flow main = Flow.newWithName("test")
                 .inFields(Test.UNU)
                 .consumer(c1)
-                .conditionalLink("key", c2)
+                .ifTrue("key", c2)
                 .consumer(c3)
                 .build();
         List<String> list = generator.generatePaths(main);
@@ -49,9 +49,9 @@ public class FlowPathGeneratorTest {
         Flow main = Flow.newWithName("test")
                 .inFields(Test.UNU)
                 .consumer(c1)
-                .conditionalLink("key1", c2)
+                .ifTrue("key1", c2)
                 .consumer(c3)
-                .conditionalLink("key2", c21)
+                .ifTrue("key2", c21)
                 .build();
         List<String> list = generator.generatePaths(main);
         assertTrue(list.contains("start->c1->c3"));
@@ -84,7 +84,7 @@ public class FlowPathGeneratorTest {
         Flow flow = Flow.newWithName("test")
                 .inFields(Test.UNU)
                 .consumer(c1)
-                .conditionalLink("key", c2).build();
+                .ifTrue("key", c2).build();
 
         List<String> paths = generator.generatePaths(flow);
         assertNotNull(paths);
@@ -100,13 +100,13 @@ public class FlowPathGeneratorTest {
 
         Flow c3 = Flow.newWithName("c3")
                 .inFields(Test.UNU)
-                .conditionalLink("sub", c2)
+                .ifTrue("sub", c2)
                 .build();
 
         Flow flow = Flow.newWithName("test")
                 .inFields(Test.UNU)
                 .consumer(c1)
-                .conditionalLink("key", c3).build();
+                .ifTrue("key", c3).build();
 
         List<String> paths = generator.generatePaths(flow);
         assertNotNull(paths);

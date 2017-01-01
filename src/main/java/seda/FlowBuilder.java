@@ -30,7 +30,7 @@ public class FlowBuilder {
         return this;
     }
 
-    public FlowBuilder conditionalLink(String key, Flow flow) {
+    public FlowBuilder ifTrue(String key, Flow flow) {
         validator.checkForConflictingNames(flow);
         Collection<Flow> flowsWithKey = localConditionsMap.get(key);
         validator.checkForUnboundFieldsForCondition(flowsWithKey, flow);
@@ -56,6 +56,7 @@ public class FlowBuilder {
     }
 
     public Flow build() {
+        unusedInputFields.removeAll(outFields);
         validator.checkIfFlowHasValidFields();
         if (!consumers.isEmpty()) {
             validator.checkIfFlowHasUnusedFields();

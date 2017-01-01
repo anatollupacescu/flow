@@ -25,7 +25,7 @@ public class FlowBuilderTest {
         Flow.newWithName("test")
                 .inFields(Test.UNU)
                 .consumer(c1)
-                .conditionalLink("key", c2)
+                .ifTrue("key", c2)
                 .consumer(c3)
                 .build();
     }
@@ -39,8 +39,8 @@ public class FlowBuilderTest {
         Flow.newWithName("test")
                 .inFields(Test.UNU)
                 .consumer(c1)
-                .conditionalLink("key", c2)
-                .conditionalLink("key", c3)
+                .ifTrue("key", c2)
+                .ifTrue("key", c3)
                 .build();
     }
 }

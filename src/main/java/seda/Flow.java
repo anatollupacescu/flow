@@ -4,7 +4,8 @@ import java.util.*;
 
 public class Flow {
 
-    final String name;
+    public final String name;
+
     final List<Flow> consumers;
     final Set<SedaType> inputFields;
     final Set<SedaType> outputFields;

@@ -5,17 +5,17 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.ListIterator;
 
-class FlowPathGenerator implements PathGenerator<String, Flow> {
+public class FlowPathGenerator implements PathGenerator<String, Flow> {
 
     private final FlowFormatter formatter;
 
-    FlowPathGenerator(FlowFormatter formatter) {
+    public FlowPathGenerator(FlowFormatter formatter) {
         this.formatter = formatter;
     }
 
     @Override
     public List<String> generatePaths(Flow start) {
-        List<String> res = Lists.newArrayList(formatter.getInitial());
+        List<String> res = Lists.newArrayList(start.name);
         parseElements(start, start.consumers, res);
         return res;
     }
