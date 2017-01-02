@@ -25,12 +25,21 @@ public class FlowPathGenerator implements PathGenerator<String, Flow> {
             if (hasCondition(mainFlow, subflow)) {
                 List<String> stringsToEnrich = Lists.newArrayList(acc);
                 String condition = getCondition(mainFlow, subflow);
+                //updateAccWithNegation(acc, condition); only if we want to see the negation
                 updateAcc(condition, subflow, stringsToEnrich);
                 acc.addAll(stringsToEnrich);
             } else updateAcc(null, subflow, acc);
         }
     }
-
+/*
+    private void updateAccWithNegation(List<String> acc, String condition) {
+        ListIterator<String> it = acc.listIterator();
+        while(it.hasNext()) {
+            String line = it.next();
+            it.set(String.format("%s%s%s(%s)", line , formatter.separator, "not" , condition));
+        }
+    }
+*/
     private void updateAcc(String condition, Flow flow, List<String> acc) {
         List<String> childElements = Lists.newArrayList(flow.name);
         if (hasChildren(flow)) {

@@ -16,7 +16,7 @@ public class FlowFormatter {
         return Optional.ofNullable(input).orElse("");
     }
 
-    public String getRow(String condition, String from, String to) {
+    String getRow(String condition, String from, String to) {
         if (!Strings.isNullOrEmpty(condition)) {
             return String.format("%s%s(%s)%s", from, separator, condition, to);
         }

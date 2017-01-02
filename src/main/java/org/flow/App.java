@@ -10,17 +10,17 @@ import static org.flow.App.AppType.*;
 public class App {
 
     enum AppType implements SedaType {
-        SESSION, USER_LIST, USER_NAME, STATUS, GAME_DATA
+        SESSION, USER_LIST, USER_NAME, STATUS, GAME_DATA, CELL_ID
     }
 
     public static void main(String[] args) {
 
         //logic and state
-        Flow userList = Flow.newWithName("userList")
+        Flow userList = Flow.newWithName("getUserList")
                 .outField(USER_LIST)
                 .build();
 
-        Flow userListSessionWriter = Flow.newWithName("sessionWriter")
+        Flow userListSessionWriter = Flow.newWithName("notifyUser")
                 .inFields(SESSION, USER_LIST)
                 .build();
 
@@ -48,13 +48,30 @@ public class App {
                 .inFields(USER_LIST)
                 .build();
 
-        Flow gameData = Flow.newWithName("gameDataHolder")
-                .inFields(USER_LIST)
+        Flow gameData = Flow.newWithName("gameData")
                 .outField(GAME_DATA)
                 .build();
 
-        Flow broadcastGameData = Flow.newWithName("gameDataBroadcaster")
+        Flow broadcastGameData = Flow.newWithName("broadcastGameData")
                 .inFields(USER_LIST, GAME_DATA)
+                .build();
+
+        Flow clearUserReadyFlagForAll = Flow.newWithName("clearUserReady")
+                .inFields(USER_LIST)
+                .build();
+
+        Flow assignCellToUser = Flow.newWithName("assignCellToUser")
+                .inFields(CELL_ID, SESSION)
+                .consumer(gameData)
+                .outField(CELL_ID, SESSION, GAME_DATA)
+                .build();
+
+        Flow sendUserWinningMessage = Flow.newWithName("sendUserWinningMessage")
+                .inFields(SESSION)
+                .build();
+
+        Flow broadcastWinnerUsername = Flow.newWithName("broadcastWinner")
+                .inFields(USER_LIST, USER_NAME)
                 .build();
 
         //client input
@@ -80,15 +97,42 @@ public class App {
                         .inFields(USER_LIST)
                         .consumer(gameData)
                         .consumer(broadcastGameData)
+                        .consumer(clearUserReadyFlagForAll)
                         .build())
                 .consumer(broadcastUserStatusChange)
+                .build();
+
+        Flow resetGame = Flow.newWithName("resetGame")
+                .consumer(gameData)
+                .outField(GAME_DATA)
+                .build();
+
+        Flow getUsernameBySession = Flow.newWithName("getUsername")
+                .inFields(SESSION)
+                .consumer(userList)
+                .outField(SESSION, USER_NAME)
+                .build();
+
+        Flow userClickedCell = Flow.newWithName("userClickedCell")
+                .inFields(CELL_ID, SESSION)
+                .consumer(assignCellToUser)
+                .consumer(userList)
+                .ifTrue("userMarkedAllCells", Flow.newWithName("userWonGame")
+                        .inFields(SESSION, USER_LIST)
+                        .consumer(sendUserWinningMessage)
+                        .consumer(getUsernameBySession)
+                        .consumer(broadcastWinnerUsername)
+                        .consumer(resetGame)
+                        .build())
+                .consumer(broadcastGameData)
                 .build();
 
         FlowFormatter formatter = new FlowFormatter("->");
         FlowPathGenerator generator = new FlowPathGenerator(formatter);
 
-//        generator.generatePaths(clientConnect).forEach(System.out::println);
-//        generator.generatePaths(userRegistered).forEach(System.out::println);
+        generator.generatePaths(clientConnect).forEach(System.out::println);
+        generator.generatePaths(userRegistered).forEach(System.out::println);
         generator.generatePaths(userChangedStatus).forEach(System.out::println);
+        generator.generatePaths(userClickedCell).forEach(System.out::println);
     }
 }
