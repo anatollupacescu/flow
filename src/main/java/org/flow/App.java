@@ -10,7 +10,15 @@ import static org.flow.App.AppType.*;
 public class App {
 
     enum AppType implements SedaType {
-        SESSION, USER_LIST, USER_NAME, STATUS, GAME_DATA, CELL_ID
+        USER_LIST
+    }
+
+    enum Game implements SedaType {
+        DATA, CELL_ID
+    }
+
+    enum User implements SedaType {
+        SESSION, NAME, STATUS
     }
 
     public static void main(String[] args) {
@@ -20,78 +28,83 @@ public class App {
                 .outField(USER_LIST)
                 .build();
 
-        Flow userListSessionWriter = Flow.newWithName("notifyUser")
-                .inFields(SESSION, USER_LIST)
+        Flow sendUserListToUser = Flow.newWithName("sendUserListToUser")
+                .inFields(User.SESSION, USER_LIST)
                 .build();
 
-        Flow broadcastNewUsername = Flow.newWithName("usernameChangeBroadcaster")
+        Flow broadcastUserList = Flow.newWithName("broadcastUserList")
                 .inFields(USER_LIST)
                 .build();
 
-        Flow usernameBinderFlow = Flow.newWithName("usernameBinder")
-                .inFields(USER_NAME, SESSION)
+        Flow updateUsername = Flow.newWithName("updateUsername")
+                .inFields(User.NAME, User.SESSION)
                 .consumer(userList)
-                .outField(USER_NAME, SESSION, USER_LIST)
+                .outField(User.NAME, User.SESSION, USER_LIST)
                 .build();
 
-        Flow bindStatusFlow = Flow.newWithName("updateStatus")
-                .inFields(SESSION, STATUS)
+        Flow updateStatus = Flow.newWithName("updateStatus")
+                .inFields(User.SESSION, User.STATUS)
                 .consumer(userList)
-                .outField(SESSION,STATUS, USER_LIST)
+                .outField(User.SESSION,User.STATUS, USER_LIST)
                 .build();
 
         Flow checkIfAllUsersAreReady = Flow.newWithName("checkIfAllUsersAreReady")
                 .inFields(USER_LIST)
                 .build();
 
-        Flow broadcastUserStatusChange = Flow.newWithName("broadcastUserStatusChange")
-                .inFields(USER_LIST)
-                .build();
-
         Flow gameData = Flow.newWithName("gameData")
-                .outField(GAME_DATA)
+                .outField(Game.DATA)
                 .build();
 
         Flow broadcastGameData = Flow.newWithName("broadcastGameData")
-                .inFields(USER_LIST, GAME_DATA)
+                .inFields(USER_LIST, Game.DATA)
                 .build();
 
         Flow clearUserReadyFlagForAll = Flow.newWithName("clearUserReady")
                 .inFields(USER_LIST)
                 .build();
 
-        Flow assignCellToUser = Flow.newWithName("assignCellToUser")
-                .inFields(CELL_ID, SESSION)
-                .consumer(gameData)
-                .outField(CELL_ID, SESSION, GAME_DATA)
-                .build();
-
         Flow sendUserWinningMessage = Flow.newWithName("sendUserWinningMessage")
-                .inFields(SESSION)
+                .inFields(User.SESSION)
                 .build();
 
         Flow broadcastWinnerUsername = Flow.newWithName("broadcastWinner")
-                .inFields(USER_LIST, USER_NAME)
+                .inFields(USER_LIST, User.NAME)
+                .build();
+
+        Flow checkIfUserAlreadyNamed = Flow.newWithName("checkIfUserHasUsername")
+                .inFields(USER_LIST, User.NAME, User.SESSION)
+                .build();
+
+        Flow removeUserFromList = Flow.newWithName("removeUserFromList")
+                .inFields(User.SESSION)
+                .consumer(userList)
+                .outField(User.SESSION, USER_LIST)
                 .build();
 
         //client input
         Flow clientConnect = Flow.newWithName("clientConnect")
-                .inFields(SESSION)
+                .inFields(User.SESSION)
                 .consumer(userList)
-                .consumer(userListSessionWriter)
+                .consumer(sendUserListToUser)
                 .outField(USER_LIST)
                 .build();
 
-        Flow userRegistered = Flow.newWithName("userProvidedName")
-                .inFields(USER_NAME, SESSION)
-                .consumer(usernameBinderFlow)
-                .consumer(broadcastNewUsername)
-                .outField(USER_LIST)
+        Flow userProvidedName = Flow.newWithName("userProvidedName")
+                .inFields(User.NAME, User.SESSION)
+                .consumer(userList)
+                .consumer(checkIfUserAlreadyNamed)
+                .ifTrue("usernameNotPresent", Flow.newWithName("bindUsernameAndBroadcastChangeSeq")
+                        .inFields(User.NAME, User.SESSION)
+                        .consumer(updateUsername)
+                        .consumer(broadcastUserList)
+                        .outField(User.NAME, User.SESSION, USER_LIST)
+                        .build())
                 .build();
 
         Flow userChangedStatus = Flow.newWithName("userChangedStatus")
-                .inFields(SESSION, STATUS)
-                .consumer(bindStatusFlow)
+                .inFields(User.SESSION, User.STATUS)
+                .consumer(updateStatus)
                 .consumer(checkIfAllUsersAreReady)
                 .ifTrue("everyoneIsReady", Flow.newWithName("startGame")
                         .inFields(USER_LIST)
@@ -99,39 +112,46 @@ public class App {
                         .consumer(broadcastGameData)
                         .consumer(clearUserReadyFlagForAll)
                         .build())
-                .consumer(broadcastUserStatusChange)
-                .build();
-
-        Flow resetGame = Flow.newWithName("resetGame")
-                .consumer(gameData)
-                .outField(GAME_DATA)
+                .consumer(broadcastUserList)
                 .build();
 
         Flow getUsernameBySession = Flow.newWithName("getUsername")
-                .inFields(SESSION)
+                .inFields(User.SESSION)
                 .consumer(userList)
-                .outField(SESSION, USER_NAME)
+                .outField(User.SESSION, User.NAME)
                 .build();
 
         Flow userClickedCell = Flow.newWithName("userClickedCell")
-                .inFields(CELL_ID, SESSION)
-                .consumer(assignCellToUser)
-                .consumer(userList)
-                .ifTrue("userMarkedAllCells", Flow.newWithName("userWonGame")
-                        .inFields(SESSION, USER_LIST)
+                .inFields(Game.CELL_ID, User.SESSION)
+                .ifTrue("cellNotAssigned", Flow.newWithName("assignCellToUser")
+                    .inFields(Game.CELL_ID, User.SESSION)
+                    .consumer(gameData)
+                    .consumer(userList)
+                    .ifTrue("userMarkedAllCells", Flow.newWithName("userWonGame")
+                        .inFields(User.SESSION, USER_LIST)
                         .consumer(sendUserWinningMessage)
                         .consumer(getUsernameBySession)
                         .consumer(broadcastWinnerUsername)
-                        .consumer(resetGame)
+                    .build())
+                    .consumer(broadcastGameData)
+                    .outField(Game.CELL_ID, User.SESSION, Game.DATA).build())
+                .build();
+
+        Flow userDisconnected = Flow.newWithName("userDisconnected")
+                .inFields(User.SESSION)
+                .consumer(removeUserFromList)
+                .ifTrue("userIsRemoved", Flow.newWithName("userRemoved")
+                        .inFields(USER_LIST)
+                        .consumer(broadcastUserList)
                         .build())
-                .consumer(broadcastGameData)
                 .build();
 
         FlowFormatter formatter = new FlowFormatter("->");
         FlowPathGenerator generator = new FlowPathGenerator(formatter);
 
         generator.generatePaths(clientConnect).forEach(System.out::println);
-        generator.generatePaths(userRegistered).forEach(System.out::println);
+        generator.generatePaths(userDisconnected).forEach(System.out::println);
+        generator.generatePaths(userProvidedName).forEach(System.out::println);
         generator.generatePaths(userChangedStatus).forEach(System.out::println);
         generator.generatePaths(userClickedCell).forEach(System.out::println);
     }
