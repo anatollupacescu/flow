@@ -8,4 +8,14 @@ final class DataView extends Node {
         super(data.name, data.fields);
         this.method = method;
     }
+
+    @Override
+    boolean canHaveChildren() {
+        return false;
+    }
+
+    @Override
+    boolean canHaveCondition() {
+        return false;
+    }
 }

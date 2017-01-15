@@ -5,7 +5,7 @@ import seda.SedaType;
 import java.util.Set;
 import java.util.function.Function;
 
-class Node {
+abstract class Node {
 
     static final Function<String, String> couldNotBindFieldsMessage = (st) -> String.format("Could not bind field(s): '%s'", st);
 
@@ -16,4 +16,8 @@ class Node {
         this.name = name;
         this.fields = inFields;
     }
+
+    abstract boolean canHaveChildren();
+
+    abstract boolean canHaveCondition();
 }

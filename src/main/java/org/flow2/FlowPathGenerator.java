@@ -15,66 +15,66 @@ public class FlowPathGenerator {
     }
 
     public List<String> generatePaths(Flow start) {
-        List<String> res = Lists.newArrayList(start.name);
-        parseElements(start, start.consumers, res);
-        return res;
+        List<String> accumulator = Lists.newArrayList(start.name);
+        parseChildren(start, accumulator);
+        return accumulator;
     }
 
-    private void parseElements(Flow mainFlow, List<Node> elements, List<String> acc) {
-        for (Node subflow : elements) {
-            if (hasCondition(mainFlow, subflow)) {
-                Logic logic = (Logic)subflow;
-                List<String> stringsToEnrich = Lists.newArrayList(acc);
-                String condition = getCondition(mainFlow, logic);
-                //updateAccWithNegation(acc, condition); only if we want to see the negation
-                updateAcc(condition, logic, stringsToEnrich);
-                acc.addAll(stringsToEnrich);
-            } else updateAcc(null, subflow, acc);
+    private void parseChildren(Flow parent, List<String> acc) {
+        for (Node child : parent.children) {
+            if (childHasCondition(parent, child)) {
+                updateAccConditional(parent, child, acc);
+            } else {
+                updateAcc(child, acc);
+            }
         }
     }
-/*
-    private void updateAccWithNegation(List<String> acc, String condition) {
-        ListIterator<String> it = acc.listIterator();
-        while(it.hasNext()) {
-            String line = it.next();
-            it.set(String.format("%s%s%s(%s)", line , formatter.separator, "not" , condition));
-        }
+
+    private void updateAcc(Node node, List<String> acc) {
+        List<String> childElements = getChildElements(node);
+        enrichAccRecordsWithChildren(null, childElements, acc);
     }
-*/
-    private void updateAcc(String condition, Node flow, List<String> acc) {
-        String flowDescription = flow.name;
-        if(flow instanceof DataView) flowDescription += String.format("[%s]", ((DataView)flow).method);
-        List<String> childElements = Lists.newArrayList(flowDescription);
+
+    private void updateAccConditional(Flow parent, Node node, List<String> acc) {
+        Logic logicNode = (Logic) node;
+        List<String> stringsToEnrich = Lists.newArrayList(acc);
+        String condition = getCondition(parent, logicNode);
+        List<String> childElements = getChildElements(logicNode);
+        enrichAccRecordsWithChildren(condition, childElements, acc);
+        acc.addAll(stringsToEnrich);
+    }
+
+    private List<String> getChildElements(Node flow) {
+        String nodeDescription = formatter.formatNode(flow);
+        List<String> childElements = Lists.newArrayList(nodeDescription);
         if (hasChildren(flow)) {
-            List<Node> children = getChildren((Flow)flow);
-            parseElements((Flow)flow, children, childElements);
+            parseChildren((Flow)flow, childElements);
         }
-        crossJoin(condition, childElements, acc);
+        return childElements;
     }
 
-    private void crossJoin(String condition, List<String> children, List<String> acc) {
+    private void enrichAccRecordsWithChildren(String condition, List<String> children, List<String> acc) {
         ListIterator<String> it = acc.listIterator();
         while (it.hasNext()) {
-            String childFlow = it.next();
-            it.remove();
+            String parentFlow = it.next();
             children.stream()
-                    .map(child -> formatter.getRow(condition, childFlow, child))
-                    .forEach(it::add);
+                .map(childFlow -> formatter.formatRow(condition, parentFlow, childFlow))
+                .forEach(it::set);
         }
     }
 
     private boolean hasChildren(Node subflow) {
-        return (subflow instanceof Flow) && !((Flow)subflow).consumers.isEmpty();
+        if (subflow.canHaveChildren())
+            return ((Flow) subflow).children.isEmpty();
+        return false;
     }
 
-    private List<Node> getChildren(Flow flow) {
-        return flow.consumers;
-    }
-
-    private boolean hasCondition(Flow parentFlow, Node subflow) {
-        if(subflow instanceof Data || subflow instanceof DataView) return false;
-        String logic = parentFlow.getCondition((Logic)subflow);
-        return !Strings.isNullOrEmpty(logic);
+    private boolean childHasCondition(Flow parentFlow, Node subflow) {
+        if (subflow.canHaveCondition()) {
+            String logic = parentFlow.getCondition((Logic) subflow);
+            return !Strings.isNullOrEmpty(logic);
+        }
+        return false;
     }
 
     private String getCondition(Flow parentFlow, Logic subflow) {

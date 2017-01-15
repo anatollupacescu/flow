@@ -12,9 +12,19 @@ public class FlowPathGeneratorTest {
         FIELD1, FIELD2, FIELD3
     }
 
+    final FlowFormatter formatter = FlowFormatter.withSeparator("->");
+
     @Test
-    public void canDo() {
-        assertTrue(true);
+    public void simpleTest1() {
+        String updateName = "updateName";
+        Data data = Data.createNew("userList", FIELD1).binding(updateName, FIELD1).build();
+        Logic notify = Logic.createNew("notifyAll").inFields(FIELD1).build();
+        Flow flow = Flow.newFlow("userProvidedName", FIELD1)
+                .update(data, updateName)
+                .process(notify)
+                .build();
+        FlowPathGenerator generator = new FlowPathGenerator(formatter);
+        generator.generatePaths(flow).forEach(System.out::println);
     }
 
     @Test
@@ -30,7 +40,6 @@ public class FlowPathGeneratorTest {
                 .processIf("Everything is fine", conditional)
                 .build();
         assertEquals("Everything is fine", flow.getCondition(conditional));
-        FlowFormatter formatter = FlowFormatter.withSeparator("->");
         FlowPathGenerator generator = new FlowPathGenerator(formatter);
         generator.generatePaths(flow).forEach(System.out::println);
     }

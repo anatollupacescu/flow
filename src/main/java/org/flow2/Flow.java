@@ -11,12 +11,12 @@ import java.util.*;
 
 public class Flow extends Logic {
 
-    final List<Node> consumers;
+    final List<Node> children;
     private final Map<Logic, String> conditionMap;
 
-    Flow(String name, Set<SedaType> inputFields, Set<SedaType> outFields, List<Node> consumers, Map<Logic, String> conditionMap) {
+    Flow(String name, Set<SedaType> inputFields, Set<SedaType> outFields, List<Node> children, Map<Logic, String> conditionMap) {
         super(name, inputFields, outFields);
-        this.consumers = consumers;
+        this.children = children;
         this.conditionMap = conditionMap;
     }
 
@@ -31,11 +31,16 @@ public class Flow extends Logic {
         return conditionMap.get(conditional);
     }
 
+    @Override
+    boolean canHaveChildren() {
+        return true;
+    }
+
     public static class FlowBuilder extends LogicBuilder {
 
         private final Set<SedaType> unusedFields;
         private final Set<SedaType> workingSet;
-        private final ImmutableList.Builder<Node> consumers = ImmutableList.builder();
+        private final ImmutableList.Builder<Node> children = ImmutableList.builder();
         private final ImmutableMap.Builder<Logic, String> conditionMap = ImmutableMap.builder();
 
         public FlowBuilder(String name, List<SedaType> inputs) {
@@ -49,14 +54,14 @@ public class Flow extends Logic {
             if(!unusedFields.isEmpty()) {
                 throw new IllegalStateException(couldNotBindFieldsMessage.apply(unusedFields.toString()));
             }
-            return new Flow(name, ImmutableSet.copyOf(inFields), ImmutableSet.copyOf(outFields), consumers.build(), conditionMap.build());
+            return new Flow(name, ImmutableSet.copyOf(inFields), ImmutableSet.copyOf(outFields), children.build(), conditionMap.build());
         }
 
         public FlowBuilder process(Logic logic) {
             bindLogic(logic, workingSet);
             unusedFields.removeAll(logic.fields);
             workingSet.addAll(logic.outFields);
-            consumers.add(logic);
+            children.add(logic);
             return this;
         }
 
@@ -67,14 +72,14 @@ public class Flow extends Logic {
 
         public FlowBuilder read(Data data) {
             workingSet.addAll(data.fields);
-            consumers.add(data);
+            children.add(data);
             return this;
         }
 
         public FlowBuilder update(Data data, String method) {
             bindData(data, method, workingSet);
             DataView view = new DataView(data, method);
-            consumers.add(view);
+            children.add(view);
             return this;
         }
 
@@ -104,12 +109,12 @@ public class Flow extends Logic {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Flow flow = (Flow) o;
-        return Objects.equals(consumers, flow.consumers) &&
+        return Objects.equals(children, flow.children) &&
                 Objects.equals(conditionMap, flow.conditionMap);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), consumers, conditionMap);
+        return Objects.hash(super.hashCode(), children, conditionMap);
     }
 }

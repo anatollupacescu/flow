@@ -21,6 +21,16 @@ public class Logic extends Node {
         return new LogicBuilder(name);
     }
 
+    @Override
+    boolean canHaveChildren() {
+        return false;
+    }
+
+    @Override
+    boolean canHaveCondition() {
+        return true;
+    }
+
     public static class LogicBuilder {
 
         final String name;

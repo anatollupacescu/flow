@@ -20,10 +20,15 @@ class FlowFormatter {
         return new FlowFormatter(separator);
     }
 
-    String getRow(String condition, String from, String to) {
+    String formatRow(String condition, String from, String to) {
         if (!Strings.isNullOrEmpty(condition)) {
             return String.format("%s%s(%s)%s", from, separator, condition, to);
         }
         return String.format("%s%s%s", from, separator, to);
+    }
+
+    String formatNode(Node node) {
+        if (node instanceof DataView) return String.format("%s[%s]", node.name, ((DataView) node).method);
+        return node.name;
     }
 }

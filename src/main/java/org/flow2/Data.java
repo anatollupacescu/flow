@@ -23,6 +23,16 @@ public class Data extends Node {
         return new DataBuilder(name, fields);
     }
 
+    @Override
+    boolean canHaveChildren() {
+        return false;
+    }
+
+    @Override
+    boolean canHaveCondition() {
+        return false;
+    }
+
     public static class DataBuilder {
         private final String name;
         private final Multimap<String, SedaType> bindings = HashMultimap.create();
