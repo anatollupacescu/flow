@@ -19,7 +19,7 @@ public class FlowPathGeneratorTest {
         Flow c1 = Flow.newWithName("c1").inFields(Test.UNU).build();
         Flow c2 = Flow.newWithName("c2").inFields(Test.UNU).build();
         Flow c3 = Flow.newWithName("c3").inFields(Test.UNU).build();
-        Flow main = Flow.newWithName("test")
+        Flow main = Flow.newWithName("start")
                 .inFields(Test.UNU)
                 .consumer(c1)
                 .ifTrue("key", c2)
@@ -46,7 +46,7 @@ public class FlowPathGeneratorTest {
                 .consumer(c01)
                 .build();
 
-        Flow main = Flow.newWithName("test")
+        Flow main = Flow.newWithName("start")
                 .inFields(Test.UNU)
                 .consumer(c1)
                 .ifTrue("key1", c2)
@@ -64,7 +64,7 @@ public class FlowPathGeneratorTest {
     public void test0() {
         Flow c1 = Flow.newWithName("c1").inFields(Test.UNU).build();
         Flow c2 = Flow.newWithName("c2").inFields(Test.UNU).build();
-        Flow flow = Flow.newWithName("test")
+        Flow flow = Flow.newWithName("start")
                 .inFields(Test.UNU)
                 .consumer(c1)
                 .consumer(c2).build();
@@ -81,7 +81,7 @@ public class FlowPathGeneratorTest {
     public void test1() {
         Flow c1 = Flow.newWithName("c1").inFields(Test.UNU).build();
         Flow c2 = Flow.newWithName("c2").inFields(Test.UNU).build();
-        Flow flow = Flow.newWithName("test")
+        Flow flow = Flow.newWithName("start")
                 .inFields(Test.UNU)
                 .consumer(c1)
                 .ifTrue("key", c2).build();
@@ -103,7 +103,7 @@ public class FlowPathGeneratorTest {
                 .ifTrue("sub", c2)
                 .build();
 
-        Flow flow = Flow.newWithName("test")
+        Flow flow = Flow.newWithName("start")
                 .inFields(Test.UNU)
                 .consumer(c1)
                 .ifTrue("key", c3).build();
