@@ -1,6 +1,4 @@
-package org.flow2;
-
-import seda.SedaType;
+package org.flow.core;
 
 import java.util.Set;
 import java.util.function.Function;

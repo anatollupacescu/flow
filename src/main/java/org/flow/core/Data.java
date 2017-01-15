@@ -1,7 +1,6 @@
-package org.flow2;
+package org.flow.core;
 
 import com.google.common.collect.*;
-import seda.SedaType;
 
 import java.util.Arrays;
 import java.util.List;

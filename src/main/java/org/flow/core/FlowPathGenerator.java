@@ -1,8 +1,9 @@
-package org.flow2;
+package org.flow.core;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -20,28 +21,17 @@ public class FlowPathGenerator {
         return accumulator;
     }
 
-    private void parseChildren(Flow parent, List<String> acc) {
+    private void parseChildren(Flow parent, List<String> accumulator) {
         for (Node child : parent.children) {
-            if (childHasCondition(parent, child)) {
-                updateAccConditional(parent, child, acc);
-            } else {
-                updateAcc(child, acc);
+            List<String> oldAccumulator = Collections.emptyList();
+            String condition = getCondition(parent, child);
+            if (!Strings.isNullOrEmpty(condition)) {
+                oldAccumulator = Lists.newArrayList(accumulator);
             }
+            List<String> childElements = getChildElements(child);
+            enrichAccRecordsWithChildren(condition, childElements, accumulator);
+            accumulator.addAll(oldAccumulator);
         }
-    }
-
-    private void updateAcc(Node node, List<String> acc) {
-        List<String> childElements = getChildElements(node);
-        enrichAccRecordsWithChildren(null, childElements, acc);
-    }
-
-    private void updateAccConditional(Flow parent, Node node, List<String> acc) {
-        Logic logicNode = (Logic) node;
-        List<String> stringsToEnrich = Lists.newArrayList(acc);
-        String condition = getCondition(parent, logicNode);
-        List<String> childElements = getChildElements(logicNode);
-        enrichAccRecordsWithChildren(condition, childElements, acc);
-        acc.addAll(stringsToEnrich);
     }
 
     private List<String> getChildElements(Node flow) {
@@ -69,15 +59,10 @@ public class FlowPathGenerator {
         return false;
     }
 
-    private boolean childHasCondition(Flow parentFlow, Node subflow) {
+    private String getCondition(Flow parentFlow, Node subflow) {
         if (subflow.canHaveCondition()) {
-            String logic = parentFlow.getCondition((Logic) subflow);
-            return !Strings.isNullOrEmpty(logic);
+            return parentFlow.getCondition((Logic) subflow);
         }
-        return false;
-    }
-
-    private String getCondition(Flow parentFlow, Logic subflow) {
-        return parentFlow.getCondition(subflow);
+        return null;
     }
 }

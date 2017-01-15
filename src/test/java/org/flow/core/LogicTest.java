@@ -1,9 +1,8 @@
-package org.flow2;
+package org.flow.core;
 
 import org.junit.Test;
-import seda.SedaType;
 
-import static org.flow2.LogicTest.LogicTestType.SESSION;
+import static org.flow.core.LogicTest.LogicTestType.SESSION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 

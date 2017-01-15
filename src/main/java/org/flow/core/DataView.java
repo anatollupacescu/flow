@@ -1,4 +1,4 @@
-package org.flow2;
+package org.flow.core;
 
 final class DataView extends Node {
 

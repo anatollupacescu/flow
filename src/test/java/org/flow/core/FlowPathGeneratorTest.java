@@ -1,10 +1,9 @@
-package org.flow2;
+package org.flow.core;
 
 import org.junit.Test;
-import seda.SedaType;
 
 import static org.junit.Assert.*;
-import static org.flow2.FlowPathGeneratorTest.FlowTestType.*;
+import static org.flow.core.FlowPathGeneratorTest.FlowTestType.*;
 
 public class FlowPathGeneratorTest {
 
@@ -15,13 +14,26 @@ public class FlowPathGeneratorTest {
     final FlowFormatter formatter = FlowFormatter.withSeparator("->");
 
     @Test
-    public void simpleTest1() {
+    public void canFormatFlowWithUpdateAndProcess() {
         String updateName = "updateName";
         Data data = Data.createNew("userList", FIELD1).binding(updateName, FIELD1).build();
         Logic notify = Logic.createNew("notifyAll").inFields(FIELD1).build();
         Flow flow = Flow.newFlow("userProvidedName", FIELD1)
                 .update(data, updateName)
                 .process(notify)
+                .build();
+        FlowPathGenerator generator = new FlowPathGenerator(formatter);
+        generator.generatePaths(flow).forEach(System.out::println);
+    }
+
+    @Test
+    public void canFormatFlowWithUpdateAndProcessConditional() {
+        String updateName = "updateName";
+        Data data = Data.createNew("userList", FIELD1).binding(updateName, FIELD1).build();
+        Logic notify = Logic.createNew("notifyAll").inFields(FIELD1).build();
+        Flow flow = Flow.newFlow("userProvidedName", FIELD1)
+                .update(data, updateName)
+                .processIf("nameUpdated", notify)
                 .build();
         FlowPathGenerator generator = new FlowPathGenerator(formatter);
         generator.generatePaths(flow).forEach(System.out::println);

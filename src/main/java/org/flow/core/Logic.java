@@ -1,8 +1,7 @@
-package org.flow2;
+package org.flow.core;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import seda.SedaType;
 
 import java.util.Arrays;
 import java.util.Objects;

@@ -1,15 +1,12 @@
-package org.flow2;
+package org.flow.core;
 
 import org.junit.Test;
-import seda.SedaType;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
-import static org.flow2.FlowTest.FlowTestType.*;
+import static org.flow.core.FlowTest.FlowTestType.*;
 
 public class FlowTest {
 

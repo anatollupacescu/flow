@@ -1,10 +1,9 @@
-package org.flow2;
+package org.flow.core;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
-import seda.SedaType;
 
-import static org.flow2.DataTest.DataTestType.*;
+import static org.flow.core.DataTest.DataTestType.*;
 import static org.junit.Assert.*;
 
 public class DataTest {

@@ -1,14 +1,14 @@
-package seda;
+package org.flow.core;
 
 import com.google.common.base.Strings;
 
 import java.util.Optional;
 
-public class FlowFormatter {
+class FlowFormatter {
 
     private final String separator;
 
-    public FlowFormatter(String separator) {
+    private FlowFormatter(String separator) {
         this.separator = orEmpty(separator);
     }
 
@@ -16,10 +16,19 @@ public class FlowFormatter {
         return Optional.ofNullable(input).orElse("");
     }
 
-    String getRow(String condition, String from, String to) {
+    static FlowFormatter withSeparator(String separator) {
+        return new FlowFormatter(separator);
+    }
+
+    String formatRow(String condition, String from, String to) {
         if (!Strings.isNullOrEmpty(condition)) {
             return String.format("%s%s(%s)%s", from, separator, condition, to);
         }
         return String.format("%s%s%s", from, separator, to);
+    }
+
+    String formatNode(Node node) {
+        if (node instanceof DataView) return String.format("%s[%s]", node.name, ((DataView) node).method);
+        return node.name;
     }
 }

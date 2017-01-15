@@ -1,4 +1,4 @@
-package seda;
+package org.flow.core;
 
 /**
  * Marker interface
