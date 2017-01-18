@@ -55,7 +55,7 @@ public class FlowPathGenerator {
 
     private boolean hasChildren(Node subflow) {
         if (subflow.canHaveChildren())
-            return ((Flow) subflow).children.isEmpty();
+            return !((Flow) subflow).children.isEmpty();
         return false;
     }
 

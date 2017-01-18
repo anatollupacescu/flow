@@ -15,17 +15,6 @@ public class FlowTest {
     }
 
     @Test
-    public void canNotCreateFlowWithoutInputs() {
-        try {
-            Flow.newFlow("flow").build();
-        } catch (RuntimeException e) {
-            assertEquals("Please specify at least one input field", e.getMessage());
-            return;
-        }
-        fail("Exception not thrown");
-    }
-
-    @Test
     public void canNotCreateFlowWithUnmatchedInputs() {
         try {
             Flow.newFlow("flow", FIELD1).build();

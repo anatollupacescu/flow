@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 
 import java.util.Optional;
 
-class FlowFormatter {
+public class FlowFormatter {
 
     private final String separator;
 
@@ -16,7 +16,7 @@ class FlowFormatter {
         return Optional.ofNullable(input).orElse("");
     }
 
-    static FlowFormatter withSeparator(String separator) {
+    public static FlowFormatter withSeparator(String separator) {
         return new FlowFormatter(separator);
     }
 

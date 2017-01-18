@@ -20,13 +20,10 @@ public class Flow extends Logic {
     }
 
     public static FlowBuilder newFlow(String name, SedaType... fields) {
-        if(fields.length == 0) {
-            throw new IllegalStateException("Please specify at least one input field");
-        }
         return new FlowBuilder(name, Arrays.asList(fields));
     }
 
-    public String getCondition(Logic conditional) {
+    String getCondition(Logic conditional) {
         return conditionMap.get(conditional);
     }
 
@@ -35,15 +32,18 @@ public class Flow extends Logic {
         return true;
     }
 
-    public static class FlowBuilder extends LogicBuilder {
+    public static class FlowBuilder {
 
         private final Set<SedaType> unusedFields;
         private final Set<SedaType> workingSet;
         private final ImmutableList.Builder<Node> children = ImmutableList.builder();
         private final ImmutableMap.Builder<Logic, String> conditionMap = ImmutableMap.builder();
+        private final Set<SedaType> inFields = Sets.newHashSet();
+        private final Set<SedaType> outFields = Sets.newHashSet();
+        private final String name;
 
-        public FlowBuilder(String name, List<SedaType> inputs) {
-            super(name);
+        FlowBuilder(String name, List<SedaType> inputs) {
+            this.name = name;
             this.inFields.addAll(inputs);
             this.unusedFields = Sets.newHashSet(inputs);
             this.workingSet = Sets.newHashSet(inputs);
@@ -79,6 +79,12 @@ public class Flow extends Logic {
             bindData(data, method, workingSet);
             DataView view = new DataView(data, method);
             children.add(view);
+            unusedFields.removeAll(data.bindings.get(method));
+            return this;
+        }
+
+        public FlowBuilder outFields(SedaType... fields) {
+            outFields.addAll(Arrays.asList(fields));
             return this;
         }
 

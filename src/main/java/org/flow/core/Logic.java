@@ -32,11 +32,11 @@ public class Logic extends Node {
 
     public static class LogicBuilder {
 
-        final String name;
-        final Set<SedaType> inFields = Sets.newHashSet();
-        final Set<SedaType> outFields = Sets.newHashSet();
+        private final String name;
+        private final Set<SedaType> inFields = Sets.newHashSet();
+        private final Set<SedaType> outFields = Sets.newHashSet();
 
-        public LogicBuilder(String name) {
+        LogicBuilder(String name) {
             this.name = name;
         }
 
@@ -51,6 +51,9 @@ public class Logic extends Node {
         }
 
         public Logic build() {
+            if(inFields.isEmpty() && outFields.isEmpty()) {
+                throw new IllegalStateException("Can not create node without input and output nodes");
+            }
             return new Logic(name, ImmutableSet.copyOf(inFields), ImmutableSet.copyOf(outFields));
         }
     }
