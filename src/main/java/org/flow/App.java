@@ -1,9 +1,8 @@
 package org.flow;
 
 import org.flow.core.*;
+import org.flow.core.SedaType;
 
-import static org.flow.App.AppType.USER_LIST;
-import static org.flow.App.AppType.USER_LIST;
 import static org.flow.App.AppType.USER_LIST;
 import static org.flow.App.Game.CELL_ID;
 import static org.flow.App.Game.DATA;
@@ -25,54 +24,48 @@ public class App {
 
     public static void main(String[] args) {
         final FlowFormatter formatter = FlowFormatter.withSeparator("->");
-        String updateName = "updateName";
-        String updateStatus = "updateStatus";
-        Data userList = Data.createNew("userList", SESSION, NAME, STATUS)
-                .binding(updateName, SESSION, NAME)
-                .binding(updateStatus, SESSION, STATUS)
+
+        Data userList = Data.createNew("userList", USER_LIST, SESSION, NAME, STATUS);
+
+        Action sendUserListToClient = Action.createNew("sendUserListToClient", FieldSet.of(USER_LIST, SESSION), FieldSet.empty())
+                .use(USER_LIST, SESSION)
                 .build();
 
-        Logic sendUserListToClient = Logic.createNew("sendUserListToClient")
-                .inFields(USER_LIST, SESSION)
-                .build();
-
-        Flow clientConnected = Flow.newFlow("clientConnected", SESSION)
+        Action clientConnected = Action.createNew("clientConnected", FieldSet.of(SESSION))
                 .read(userList)
-                .process(sendUserListToClient)
+                .execute(sendUserListToClient)
                 .build();
 
-        Flow broadcastUserList = Flow.newFlow("broadcastUserList")
+        Action broadcastUserList = Action.createNew("broadcastUserList")
+                .read(userList, USER_LIST)
+                .use(USER_LIST)
+                .build();
+
+        Action clientProvidedName = Action.createNew("clientProvidedName", FieldSet.of(SESSION, NAME))
+                .update(userList, SESSION, NAME)
+                .execute(broadcastUserList)
+                .build();
+
+        Action updatePlayerStatus = Action.createNew("updatePlayerStatus", FieldSet.of(SESSION, STATUS))
+                .update(userList, SESSION, STATUS)
+                .build();
+
+        Data game = Data.createNew("game", USER_LIST, DATA, CELL_ID);
+
+        Action startGame = Action.createNew("startGame", FieldSet.of(USER_LIST))
+                .update(game, USER_LIST)
+                .build();
+
+        Action clientUpdatedStatus = Action.createNew("clientUpdatedStatus", FieldSet.of(SESSION, STATUS))
                 .read(userList)
-                .build();
-
-        Flow clientProvidedName = Flow.newFlow("clientProvidedName", SESSION, NAME)
-                .update(userList, updateName)
-                .process(broadcastUserList)
-                .build();
-
-        Flow updatePlayerStatus = Flow.newFlow("updatePlayerStatus", SESSION, STATUS)
-                .update(userList, updateStatus)
-                .build();
-
-        Data game = Data.createNew("game", USER_LIST, DATA, CELL_ID)
-                .binding("startGame", USER_LIST)
-                .binding("stopGame")
-                .build();
-
-        Flow startGame = Flow.newFlow("startGame", USER_LIST)
-                .update(game, "startGame")
-                .build();
-
-        Flow clientUpdatedStatus = Flow.newFlow("clientUpdatedStatus", SESSION, STATUS)
-                .read(userList)
-                .process(updatePlayerStatus)
-                .processIf("Is the last player ready", startGame)
-                .process(broadcastUserList)
+                .execute(updatePlayerStatus)
+                .executeIf("Is the last player ready", startGame)
+                .execute(broadcastUserList)
                 .build();
 
         FlowPathGenerator generator = new FlowPathGenerator(formatter);
-        generator.generatePaths(clientConnected).forEach(System.out::println);
-        generator.generatePaths(clientProvidedName).forEach(System.out::println);
-        generator.generatePaths(clientUpdatedStatus).forEach(System.out::println);
+//        generator.generatePaths(clientConnected).forEach(System.out::println);
+//        generator.generatePaths(clientProvidedName).forEach(System.out::println);
+//        generator.generatePaths(clientUpdatedStatus).forEach(System.out::println);
     }
 }

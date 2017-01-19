@@ -22,7 +22,7 @@ public class FlowPathGenerator {
     }
 
     private void parseChildren(Flow parent, List<String> accumulator) {
-        for (Node child : parent.children) {
+        for (Flow child : parent.children) {
             List<String> oldAccumulator = Collections.emptyList();
             String condition = getCondition(parent, child);
             if (!Strings.isNullOrEmpty(condition)) {
@@ -34,11 +34,10 @@ public class FlowPathGenerator {
         }
     }
 
-    private List<String> getChildElements(Node flow) {
-        String nodeDescription = formatter.formatNode(flow);
-        List<String> childElements = Lists.newArrayList(nodeDescription);
+    private List<String> getChildElements(Flow flow) {
+        List<String> childElements = Lists.newArrayList(flow.name);
         if (hasChildren(flow)) {
-            parseChildren((Flow)flow, childElements);
+            parseChildren(flow, childElements);
         }
         return childElements;
     }
@@ -53,16 +52,11 @@ public class FlowPathGenerator {
         }
     }
 
-    private boolean hasChildren(Node subflow) {
-        if (subflow.canHaveChildren())
-            return !((Flow) subflow).children.isEmpty();
-        return false;
+    private boolean hasChildren(Flow subflow) {
+        return subflow.children.isEmpty();
     }
 
-    private String getCondition(Flow parentFlow, Node subflow) {
-        if (subflow.canHaveCondition()) {
-            return parentFlow.getCondition((Logic) subflow);
-        }
-        return null;
+    private String getCondition(Flow parentFlow, Flow subflow) {
+        return parentFlow.getCondition(subflow);
     }
 }

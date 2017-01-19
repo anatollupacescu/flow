@@ -1,60 +1,29 @@
 package org.flow.core;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
-public class Data extends Node {
+public class Data {
 
-    final Multimap<String, SedaType> bindings;
+    public final String name;
+    public final Set<SedaType> fields;
 
-    public Data(String name, Set<SedaType> fields, Multimap<String, SedaType> bindings) {
-        super(name, fields);
-        this.bindings = bindings;
+    private Data(String name, Set<SedaType> fields) {
+        this.name = name;
+        this.fields = ImmutableSet.copyOf(fields);
     }
 
-    public static DataBuilder createNew(String name, SedaType ...fields) {
-        if(fields.length == 0) {
-            throw new IllegalStateException("Can not create node without fields");
-        }
-        return new DataBuilder(name, fields);
+    public static Data createNew(String name, SedaType ...fields) {
+        return new Data(name, Sets.newHashSet(fields));
     }
 
-    @Override
-    boolean canHaveChildren() {
-        return false;
+    boolean containsAll(Set<SedaType> fieldList) {
+        return fields.containsAll(fieldList);
     }
 
-    @Override
-    boolean canHaveCondition() {
-        return false;
-    }
-
-    public static class DataBuilder {
-        private final String name;
-        private final Multimap<String, SedaType> bindings = HashMultimap.create();
-        private final Set<SedaType> fields;
-
-        public DataBuilder(String name, SedaType ... argFields) {
-            this.name = name;
-            fields = ImmutableSet.copyOf(Lists.newArrayList(argFields));
-        }
-
-        public Data build() {
-            return new Data(name, fields, bindings);
-        }
-
-        public DataBuilder binding(String method, SedaType ... inFields) {
-            List<SedaType> fieldList = Arrays.asList(inFields);
-            if(fields.containsAll(fieldList)) {
-                this.bindings.putAll(method, fieldList);
-            } else {
-                Sets.SetView<SedaType> missingFields = Sets.difference(ImmutableSet.copyOf(fieldList), fields);
-                throw new IllegalStateException(String.format("Could not register binding '%s' - missing fields - %s", method, missingFields));
-            }
-            return this;
-        }
+    Set<SedaType> missingFields(Set<SedaType> fieldList) {
+        return Sets.difference(fieldList, fields);
     }
 }

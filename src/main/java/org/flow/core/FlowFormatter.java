@@ -26,9 +26,4 @@ public class FlowFormatter {
         }
         return String.format("%s%s%s", from, separator, to);
     }
-
-    String formatNode(Node node) {
-        if (node instanceof DataView) return String.format("%s[%s]", node.name, ((DataView) node).method);
-        return node.name;
-    }
 }
