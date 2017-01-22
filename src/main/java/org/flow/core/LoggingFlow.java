@@ -14,7 +14,7 @@ public class LoggingFlow implements Flow {
     final List<LoggingFlow> children;
     private Map<LoggingFlow, String> conditionMap;
 
-    LoggingFlow(String name, List<LoggingFlow> children, Map<LoggingFlow, String> conditionMap) {
+    public LoggingFlow(String name, List<LoggingFlow> children, Map<LoggingFlow, String> conditionMap) {
         this.name = name;
         this.children = children;
         this.conditionMap = conditionMap;

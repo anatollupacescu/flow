@@ -81,6 +81,9 @@ public class Action {
 
         public ActionBuilder read(Data data, SedaType... fields) {
             Set<SedaType> fieldList = Sets.newHashSet(fields);
+            if(fieldList.isEmpty()) {
+                fieldList = data.fields;
+            }
             if (dataHasAllFields(data, fieldList)) {
                 allFields.addAll(fieldList);
             }

@@ -1,5 +1,7 @@
 package org.flow;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.flow.core.*;
 import org.flow.core.SedaType;
 
@@ -24,6 +26,7 @@ public class App {
 
     public static void main(String[] args) {
         final FlowFormatter formatter = FlowFormatter.withSeparator("->");
+        FlowPathGenerator generator = new FlowPathGenerator(formatter);
 
         Data userList = Data.createNew("userList", USER_LIST, SESSION, NAME, STATUS);
 
@@ -32,7 +35,7 @@ public class App {
                 .build();
 
         Action clientConnected = Action.createNew("clientConnected", FieldSet.of(SESSION))
-                .read(userList)
+                .read(userList, USER_LIST, SESSION)
                 .execute(sendUserListToClient)
                 .build();
 
@@ -56,16 +59,15 @@ public class App {
                 .update(game, USER_LIST)
                 .build();
 
-        Action clientUpdatedStatus = Action.createNew("clientUpdatedStatus", FieldSet.of(SESSION, STATUS))
-                .read(userList)
+        LoggingFlow flow = new LoggingFlow("start", Lists.newArrayList(), Maps.newHashMap());
+        Action.createNew("clientUpdatedStatus", FieldSet.of(SESSION, STATUS))
+                .withFlow(flow)
+                .read(userList, USER_LIST)
                 .execute(updatePlayerStatus)
                 .executeIf("Is the last player ready", startGame)
                 .execute(broadcastUserList)
                 .build();
 
-        FlowPathGenerator generator = new FlowPathGenerator(formatter);
-//        generator.generatePaths(clientConnected).forEach(System.out::println);
-//        generator.generatePaths(clientProvidedName).forEach(System.out::println);
-//        generator.generatePaths(clientUpdatedStatus).forEach(System.out::println);
+        generator.generatePaths(flow).forEach(System.out::println);
     }
 }
