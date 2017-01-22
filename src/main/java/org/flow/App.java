@@ -28,7 +28,7 @@ public class App {
         Data userList = Data.createNew("userList", USER_LIST, SESSION, NAME, STATUS);
 
         Action sendUserListToClient = Action.createNew("sendUserListToClient", FieldSet.of(USER_LIST, SESSION), FieldSet.empty())
-                .use(USER_LIST, SESSION)
+                .use("bind status to user", USER_LIST, SESSION)
                 .build();
 
         Action clientConnected = Action.createNew("clientConnected", FieldSet.of(SESSION))
@@ -38,7 +38,7 @@ public class App {
 
         Action broadcastUserList = Action.createNew("broadcastUserList")
                 .read(userList, USER_LIST)
-                .use(USER_LIST)
+                .use("bind status to user", USER_LIST)
                 .build();
 
         Action clientProvidedName = Action.createNew("clientProvidedName", FieldSet.of(SESSION, NAME))

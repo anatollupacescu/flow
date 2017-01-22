@@ -1,10 +1,12 @@
 package org.flow.core;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.Test;
 
 import static org.flow.core.ActionTest.ActionType.*;
+import static org.flow.core.ActionTest.GameEvent.*;
 import static org.junit.Assert.*;
 
 public class ActionTest {
@@ -18,7 +20,7 @@ public class ActionTest {
         FieldSet input = FieldSet.empty();
         assertTrue(input.isEmpty());
         input = FieldSet.of(ONE, THREE);
-        assertEquals(Sets.newHashSet(ONE, THREE), ImmutableSet.copyOf(input));
+        assertEquals(ImmutableSet.of(ONE, THREE), ImmutableSet.copyOf(input));
         try {
             input.add(TWO);
         } catch (Exception e) {
@@ -33,7 +35,7 @@ public class ActionTest {
         FieldSet input = FieldSet.of(ONE, TWO);
         FieldSet output = FieldSet.of(TWO);
         Action action1 = Action.createNew("t1", input, output)
-                .use(ONE)
+                .use("bind status to user", ONE)
                 .build();
         assertNotNull(action1);
     }
@@ -41,14 +43,14 @@ public class ActionTest {
     @Test
     public void canExecute() {
         Action childAction = Action.createNew("childAction", FieldSet.of(ONE), FieldSet.empty())
-                .use(ONE)
+                .use("bind status to user", ONE)
                 .build();
 
         FieldSet input = FieldSet.of(ONE, TWO);
         FieldSet output = FieldSet.of(ONE);
         Action action1 = Action.createNew("t1", input, output)
                 .execute(childAction)
-                .use(TWO)
+                .use("bind status to user", TWO)
                 .build();
         assertNotNull(action1);
     }
@@ -59,7 +61,7 @@ public class ActionTest {
 
         Action action1 = Action.createNew("t1", FieldSet.of(ONE), FieldSet.empty())
                 .read(data, TWO)
-                .use(ONE, TWO)
+                .use("bind status to user", ONE, TWO)
                 .build();
         assertNotNull(action1);
     }
@@ -70,7 +72,7 @@ public class ActionTest {
         try {
             Action.createNew("t1", FieldSet.of(ONE), FieldSet.empty())
                     .read(data, TWO, THREE)
-                    .use(ONE, TWO, THREE)
+                    .use("bind status to user", ONE, TWO, THREE)
                     .build();
         } catch (Exception e) {
             assertTrue(e instanceof UnmatchedFieldsException);
@@ -83,29 +85,51 @@ public class ActionTest {
     public void canUpdate() {
         Data data = Data.createNew("userList", TWO);
 
-        Action action1 = Action.createNew("t1", FieldSet.of(ONE), FieldSet.empty())
+        Action action1 = Action.createNew("t1", FieldSet.of(ONE, TWO), FieldSet.empty())
                 .update(data, TWO)
-                .use(ONE)
+                .use("bind status to user", ONE)
                 .build();
         assertNotNull(action1);
     }
 
+    enum GameEvent implements SedaType {
+        USER_ID, USER_LIST, STATUS, GAME_DATA
+    }
+
     @Test
-    public void test1() {
-        Action action2 = Action.createNew("childAction", FieldSet.of(ONE), FieldSet.empty())
-                .use(ONE)
+    public void flowTest() {
+        LoggingFlow flow = new LoggingFlow("start", Lists.newArrayList(), Maps.newHashMap());
+
+        Data userList = Data.createNew("userList", USER_LIST, STATUS);
+
+        Action updateUserStatus = Action.createNew("updateUserStatus", FieldSet.of(STATUS, USER_ID), FieldSet.empty())
+                .withFlow(flow)
+                .use("bind status to user", USER_ID, STATUS)
                 .build();
 
-        Data data = Data.createNew("userList", ONE, THREE);
-
-        FieldSet input = FieldSet.of(ONE, TWO);
-        FieldSet output = FieldSet.of(ONE);
-        Action action1 = Action.createNew("t1", input, output)
-                .execute(action2)
-                .read(data, THREE)
-                .update(data, ONE)
-                .use(TWO, THREE)
+        Action broadcastUserList = Action.createNew("broadcastUserList")
+                .withFlow(flow)
+                .read(userList, USER_LIST)
+                .use("broadcast updated user list", USER_LIST)
                 .build();
+
+        Data gameData = Data.createNew("gameData", USER_ID, GAME_DATA);
+
+        Action startGame = Action.createNew("startGame")
+                .read(userList, USER_LIST)
+                .use("count users", USER_LIST)
+                .create(gameData, GAME_DATA)
+                .build();
+
+        Action action1 = Action.createNew("userIsReady", FieldSet.of(USER_ID, STATUS))
+                .withFlow(flow)
+                .execute(updateUserStatus)
+                .execute(broadcastUserList)
+                .executeIf("Is the last user ready", startGame)
+                .build();
+
         assertNotNull(action1);
+        FlowPathGenerator generator = new FlowPathGenerator(FlowFormatter.withSeparator("->"));
+        generator.generatePaths(flow).forEach(System.out::println);
     }
 }

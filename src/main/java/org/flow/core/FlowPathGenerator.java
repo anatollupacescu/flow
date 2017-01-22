@@ -15,14 +15,14 @@ public class FlowPathGenerator {
         this.formatter = formatter;
     }
 
-    public List<String> generatePaths(Flow start) {
+    public List<String> generatePaths(LoggingFlow start) {
         List<String> accumulator = Lists.newArrayList(start.name);
         parseChildren(start, accumulator);
         return accumulator;
     }
 
-    private void parseChildren(Flow parent, List<String> accumulator) {
-        for (Flow child : parent.children) {
+    private void parseChildren(LoggingFlow parent, List<String> accumulator) {
+        for (LoggingFlow child : parent.children) {
             List<String> oldAccumulator = Collections.emptyList();
             String condition = getCondition(parent, child);
             if (!Strings.isNullOrEmpty(condition)) {
@@ -34,7 +34,7 @@ public class FlowPathGenerator {
         }
     }
 
-    private List<String> getChildElements(Flow flow) {
+    private List<String> getChildElements(LoggingFlow flow) {
         List<String> childElements = Lists.newArrayList(flow.name);
         if (hasChildren(flow)) {
             parseChildren(flow, childElements);
@@ -52,11 +52,11 @@ public class FlowPathGenerator {
         }
     }
 
-    private boolean hasChildren(Flow subflow) {
+    private boolean hasChildren(LoggingFlow subflow) {
         return subflow.children.isEmpty();
     }
 
-    private String getCondition(Flow parentFlow, Flow subflow) {
+    private String getCondition(LoggingFlow parentFlow, LoggingFlow subflow) {
         return parentFlow.getCondition(subflow);
     }
 }

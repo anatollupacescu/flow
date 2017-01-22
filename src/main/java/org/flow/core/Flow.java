@@ -1,37 +1,15 @@
 package org.flow.core;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 
-public class Flow {
+public interface Flow {
+    void addChild(Action child);
 
-    final List<Flow> children;
-    final Map<Flow, String> conditionMap;
-    final String name;
+    void addChildWithCondition(Action child, String reason);
 
-    Flow(String name, List<Flow> children, Map<Flow, String> conditionMap) {
-        this.name = name;
-        this.children = children;
-        this.conditionMap = conditionMap;
-    }
+    void addChild(Set<SedaType> fieldList);
 
-    String getCondition(Flow conditional) {
-        return conditionMap.get(conditional);
-    }
+    void addChild(String operation, Data data, Set<SedaType> fieldList);
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Flow flow = (Flow) o;
-        return Objects.equals(children, flow.children) &&
-                Objects.equals(conditionMap, flow.conditionMap);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), children, conditionMap);
-    }
+    void addChild(String operation, Set<SedaType> fieldList);
 }

@@ -11,7 +11,7 @@ public class Action {
     final FieldSet input;
     final FieldSet output;
 
-    public Action(String name, FieldSet input, FieldSet output) {
+    private Action(String name, FieldSet input, FieldSet output) {
         this.name = name;
         this.input = input;
         this.output = output;
@@ -33,30 +33,48 @@ public class Action {
 
         private final String name;
         private final FieldSet input;
-        private final Set<SedaType> workingSet = Sets.newHashSet();
+        private final Set<SedaType> allFields = Sets.newHashSet();
+        private final Set<SedaType> usedFields = Sets.newHashSet();
         private final FieldSet output;
+        private Flow flow = new Flow() {
+            public void addChild(Action child) { }
+            public void addChildWithCondition(Action child, String reason) { }
+            public void addChild(Set<SedaType> fieldList) { }
+            public void addChild(String operation, Data data, Set<SedaType> fieldList) { }
+            public void addChild(String operation, Set<SedaType> fieldList) { }
+        };
 
-        public ActionBuilder(String name, FieldSet input, FieldSet output) {
+        private ActionBuilder(String name, FieldSet input, FieldSet output) {
             this.name = name;
             this.input = input;
             this.output = output;
-            workingSet.addAll(input);
+            allFields.addAll(input);
+        }
+
+        public ActionBuilder withFlow(LoggingFlow flow) {
+            this.flow = flow;
+            return this;
         }
 
         public ActionBuilder execute(Action child) {
-            workingSet.removeAll(child.input);
-            workingSet.addAll(child.output);
+            usedFields.addAll(child.input);
+            allFields.addAll(child.output);
+            flow.addChild(child);
             return this;
         }
 
         public ActionBuilder executeIf(String reason, Action child) {
+            usedFields.addAll(child.input);
+            allFields.addAll(child.output);
+            flow.addChildWithCondition(child, reason);
             return this;
         }
 
         public Action build() {
-            workingSet.removeAll(output);
-            if (!workingSet.isEmpty()) {
-                throw new UnusedFieldsException(workingSet);
+            usedFields.addAll(output);
+            Set<SedaType> unusedFields = Sets.symmetricDifference(allFields, usedFields);
+            if (!unusedFields.isEmpty()) {
+                throw new UnusedFieldsException(unusedFields);
             }
             return new Action(name, input, output);
         }
@@ -64,21 +82,39 @@ public class Action {
         public ActionBuilder read(Data data, SedaType... fields) {
             Set<SedaType> fieldList = Sets.newHashSet(fields);
             if (dataHasAllFields(data, fieldList)) {
-                workingSet.addAll(fieldList);
+                allFields.addAll(fieldList);
             }
+            flow.addChild("read", data, fieldList);
             return this;
         }
 
         public ActionBuilder update(Data data, SedaType... fields) {
-            markFields(data, fields);
+            modify("update", data, fields);
             return this;
         }
 
-        private void markFields(Data data, SedaType[] fields) {
+        public ActionBuilder create(Data data, SedaType... fields) {
+            modify("create", data, fields);
+            allFields.addAll(Arrays.asList(fields));
+            return this;
+        }
+
+        private void modify(String modType, Data data, SedaType[] fields) {
             Set<SedaType> fieldList = Sets.newHashSet(fields);
             if (dataHasAllFields(data, fieldList)) {
-                workingSet.removeAll(fieldList);
+                usedFields.addAll(fieldList);
             }
+            flow.addChild(modType, data, fieldList);
+        }
+
+        public ActionBuilder use(String operation, SedaType... fields) {
+            Set<SedaType> fieldList = Sets.newHashSet(fields);
+            if (!allFields.containsAll(fieldList)) {
+                throw new UnmatchedFieldsException(difference(fieldList, allFields));
+            }
+            usedFields.addAll(fieldList);
+            flow.addChild(operation, fieldList);
+            return this;
         }
 
         private boolean dataHasAllFields(Data data, Set<SedaType> fieldList) {
@@ -86,15 +122,6 @@ public class Action {
                 throw new UnmatchedFieldsException(data.missingFields(fieldList));
             }
             return true;
-        }
-
-        public ActionBuilder use(SedaType... fields) {
-            Set<SedaType> fieldList = Sets.newHashSet(fields);
-            if (!workingSet.containsAll(fieldList)) {
-                throw new UnmatchedFieldsException(difference(fieldList, workingSet));
-            }
-            workingSet.removeAll(Arrays.asList(fields));
-            return this;
         }
 
         private Set<SedaType> difference(Set<SedaType> fieldList, Set<SedaType> workingSet) {
